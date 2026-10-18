@@ -1,0 +1,18 @@
+# Private student data: the TCU alumni directory must never be committed.
+*.xlsx
+*.xls
+*.csv
+private/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Local databases and build output
+offerready/.data/
+node_modules/
+.next/
+
+# macOS
+.DS_Store

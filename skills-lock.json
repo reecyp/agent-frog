@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "skills": {
+    "motion": {
+      "source": "jezweb/claude-skills",
+      "ref": "v1-final",
+      "sourceType": "github",
+      "skillPath": "skills/motion/SKILL.md",
+      "computedHash": "54f26bc1f377e50db9e2dec5c26faf8ff0434f6d8a053b76ad4be65baf9d2e55"
+    }
+  }
+}

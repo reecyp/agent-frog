@@ -5,6 +5,7 @@ import type { AtsReport, ChangeSummaryItem } from "@/domain/types";
 import { EmptyState, Section } from "../ui";
 import { ProofSheet } from "./ProofSheet";
 import { GenerateButton } from "./GenerateButton";
+import { ResolveAllDemo } from "./ResolveAllDemo";
 
 const KIND_LABEL: Record<ChangeSummaryItem["kind"], string> = {
   emphasized: "Reworded",
@@ -47,9 +48,12 @@ export function ReviewStep({ view, which }: { view: ApplicationView; which: "res
           {tab("resume", "Resume", view.resume)}
           {tab("cover_letter", "Cover letter", view.coverLetter)}
         </nav>
-        <p className="t-meta">
-          Version {doc.version}, drafted {doc.generator === "claude" ? "by Claude" : "with rules (no AI)"} on {doc.createdAt.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-        </p>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <p className="t-meta">
+            Version {doc.version}, drafted {doc.generator === "claude" ? "by Claude" : "with rules (no AI)"} on {doc.createdAt.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+          </p>
+          {(view.resume.status !== "approved" || view.coverLetter.status !== "approved") && <ResolveAllDemo applicationId={view.app.id} jobId={view.job.id} />}
+        </div>
       </div>
 
       <ProofSheet

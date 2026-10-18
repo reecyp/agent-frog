@@ -1,0 +1,911 @@
+/* =========================================================================
+   Sections C–I. Same studio, same rules as walkthrough.css: paper panels,
+   light paper for documents, purple only for actions and the current
+   choice, statuses always in words. Scoped under .af-demo.
+   ========================================================================= */
+
+.af-demo {
+  --danger-soft: rgb(220 110 90 / 0.14);
+  --danger: #eba08f;
+  --sheet-ink: #1d1b18;
+}
+
+.af-lede-2 {
+  margin-top: 1.1rem;
+  color: var(--ink-2);
+}
+.af-review-label {
+  display: block;
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.af-review-said {
+  margin: 0;
+  min-height: 1.25rem;
+  font-size: 0.8125rem;
+  color: var(--ink-2);
+}
+.af-status-removed {
+  color: var(--ink-3);
+  background: rgb(255 255 255 / 0.06);
+}
+.af-status-missing {
+  color: var(--ink-3);
+  background: rgb(255 255 255 / 0.06);
+}
+.af-cov-supported {
+  color: var(--ok);
+  background: var(--ok-soft);
+}
+.af-cov-partial {
+  color: var(--caution);
+  background: var(--caution-soft);
+}
+.af-cov-not_supported {
+  color: var(--ink-3);
+  background: rgb(255 255 255 / 0.06);
+}
+
+/* ---------- The view switch ---------- */
+
+.af-toggle {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 6px;
+  background: var(--desk-deep);
+  box-shadow: inset 0 0 0 1px var(--desk-line);
+}
+.af-toggle-opt {
+  position: relative;
+  min-height: 2.25rem;
+  padding: 0 0.85rem;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--ink-3);
+  font: 600 0.8125rem/1 var(--font-ui);
+  cursor: pointer;
+  transition: color 200ms;
+}
+.af-toggle-opt:hover,
+.af-toggle-opt[aria-pressed="true"] {
+  color: var(--ink);
+}
+.af-toggle-bed {
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  background: var(--paper-edge);
+  box-shadow: var(--shadow-raised);
+}
+.af-toggle-label {
+  position: relative;
+}
+
+/* ---------- Shared column placement ---------- */
+
+.af-copy {
+  align-self: start;
+  position: sticky;
+  top: 14svh;
+}
+
+/* ---------- C. Tailor: narrow copy left, a wide cutting table right ---------- */
+
+.af-tailor-copy {
+  grid-column: 1 / span 4;
+}
+.af-tailor-demo {
+  grid-column: 5 / -1;
+}
+.af-jobs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0 0 1.25rem;
+  padding: 0;
+  border: 0;
+}
+.af-job {
+  flex: 1 1 14rem;
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.85rem 1rem;
+  border-radius: 6px;
+  background: var(--paper);
+  box-shadow: 0 0 0 1px var(--paper-edge);
+  cursor: pointer;
+  transition: box-shadow 200ms, background-color 200ms;
+}
+.af-job:hover {
+  background: #2b221c;
+}
+.af-job[data-on] {
+  box-shadow: 0 0 0 2px var(--frog-text);
+}
+.af-job:has(input:focus-visible) {
+  outline: 2px solid var(--frog-text);
+  outline-offset: 3px;
+}
+.af-job-title {
+  font-weight: 600;
+  color: var(--ink);
+}
+.af-job-co {
+  font-size: 0.8125rem;
+  color: var(--ink-3);
+}
+
+.af-tailor-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: clamp(1rem, 2vw, 1.75rem);
+  align-items: start;
+}
+.af-posting {
+  padding: 1.25rem;
+}
+.af-posting-place {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--ink-3);
+}
+.af-posting-summary {
+  margin: 0.5rem 0 1.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.af-posting-h {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.af-reqs {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.af-req {
+  display: grid;
+  justify-items: start;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink);
+  font: 0.875rem/1.45 var(--font-ui);
+  text-align: left;
+  box-shadow: inset 0 0 0 1px var(--desk-line);
+  cursor: pointer;
+  transition: background-color 200ms, box-shadow 200ms;
+}
+.af-req:hover {
+  background: rgb(255 255 255 / 0.03);
+}
+.af-req[aria-pressed="true"] {
+  background: var(--frog-soft);
+  box-shadow: inset 0 0 0 1px rgb(201 174 234 / 0.5);
+}
+.af-req-gap {
+  margin: 0.9rem 0 0;
+  min-height: 2.6rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+.af-tailor-sheet {
+  container-type: inline-size;
+}
+.af-tailored {
+  height: auto;
+  font-size: max(13px, 3cqi);
+  padding: 8% 8% 9%;
+}
+.af-tailored-lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.af-tailored-line {
+  position: relative;
+  display: grid;
+  gap: 0.1em;
+  margin: 0 -0.5em;
+  padding: 0.45em 0.5em;
+  border-radius: 2px;
+  transition: background-color 300ms;
+}
+/* The line the chosen requirement pulled up gets a highlighter stroke, as a student would mark it */
+.af-tailored-line[data-hot] {
+  background: rgb(240 205 110 / 0.42);
+}
+.af-tailored-org {
+  font-weight: 700;
+}
+.af-change-key {
+  margin: 0.9rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+.af-change-key li[data-hot] {
+  color: var(--ink);
+}
+.af-change-org {
+  font-weight: 600;
+}
+
+/* ---------- D. Review: two proof cards, offset like sheets on a table ---------- */
+
+.af-review-demo {
+  grid-column: 1 / span 7;
+}
+.af-review-copy {
+  grid-column: 9 / -1;
+}
+.af-review-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.af-review-list {
+  display: grid;
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.af-review-list > li:nth-child(2) {
+  margin-left: clamp(0rem, 6%, 3rem);
+}
+.af-review-card[data-flagged] {
+  box-shadow: var(--shadow-paper), 0 0 0 1px var(--paper-edge), inset 3px 0 0 var(--caution);
+}
+.af-review-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.9rem 1.25rem;
+  border-bottom: 1px solid var(--desk-line);
+}
+.af-review-change {
+  font-size: 0.8125rem;
+  color: var(--ink-3);
+}
+.af-review-body {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem 1.25rem;
+}
+.af-review-body .af-toggle {
+  justify-self: start;
+}
+.af-review-text {
+  margin: 0;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 1.1rem;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.af-review-text[data-removed] {
+  color: var(--ink-3);
+  text-decoration: line-through;
+  text-decoration-color: rgb(160 146 128 / 0.6);
+}
+.af-review-issue {
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  border-radius: 4px;
+  background: var(--caution-soft);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.af-review-dl {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+.af-review-dl div {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  gap: 0.75rem;
+}
+.af-review-dl dt {
+  color: var(--ink-3);
+}
+.af-review-dl dd {
+  margin: 0;
+  color: var(--ink-2);
+}
+.af-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.85rem 1.25rem;
+  border-top: 1px solid var(--desk-line);
+  background: rgb(0 0 0 / 0.14);
+}
+.af-review-actions .af-review-said {
+  margin-right: auto;
+}
+.af-review-card .af-fact-edit {
+  display: grid;
+}
+
+/* ---------- E. Letter: copy left, the letter with its reasoning in the margin ---------- */
+
+.af-letter-copy {
+  grid-column: 1 / span 5;
+}
+.af-letter-demo {
+  grid-column: 6 / -1;
+}
+.af-letter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.af-letter-blanks {
+  margin: 0;
+}
+.af-letter-desk {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+.af-letter-desk[data-why] {
+  grid-template-columns: minmax(0, 1fr) minmax(11rem, 14rem);
+}
+.af-letter-sheet {
+  height: auto;
+  max-width: 40rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  padding: clamp(1.5rem, 4vw, 3rem);
+}
+.af-letter-sheet p {
+  margin: 0;
+}
+.af-letter-name {
+  font-size: 1.5em;
+  font-weight: 700;
+}
+.af-letter-contact {
+  margin-bottom: 1.25em !important;
+  font-size: 0.875em;
+}
+.af-letter-date {
+  margin-bottom: 1em !important;
+}
+.af-letter-greet {
+  margin: 1em 0 !important;
+}
+.af-letter-part {
+  position: relative;
+  margin-bottom: 1em;
+}
+/* With the reasoning shown, each paragraph gets a purple pencil mark in the left margin */
+.af-letter-part::before {
+  content: "";
+  position: absolute;
+  left: -1.1em;
+  top: 0.2em;
+  bottom: 0.2em;
+  width: 2px;
+  background: rgb(77 25 121 / 0.6);
+  opacity: 0;
+  transition: opacity 300ms;
+}
+.af-letter-desk[data-why] .af-letter-part::before {
+  opacity: 1;
+}
+.af-letter-sign {
+  margin-top: 1.25em !important;
+}
+.af-blank {
+  padding: 0.05em 0.25em;
+  border-radius: 2px;
+  background: rgb(240 205 110 / 0.5);
+  color: var(--sheet-ink);
+  font-style: italic;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.af-letter-notes {
+  display: grid;
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.af-letter-note {
+  padding-left: 0.9rem;
+  border-left: 2px solid var(--frog-text);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.af-letter-note p {
+  margin: 0;
+}
+.af-letter-note-role {
+  margin-bottom: 0.25rem !important;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink) !important;
+}
+
+/* ---------- F. Export: the final sheet left, the checks right ---------- */
+
+.af-export-demo {
+  grid-column: 1 / span 6;
+}
+.af-export-copy {
+  grid-column: 8 / -1;
+}
+.af-export-bar {
+  margin-bottom: 1.25rem;
+}
+.af-export-sheet {
+  container-type: inline-size;
+  min-height: 24rem;
+}
+.af-final {
+  height: auto;
+  font-size: max(14px, 2.7cqi);
+  padding: 8%;
+}
+.af-ats {
+  margin: 0;
+  padding: 1.5rem;
+  border-radius: 6px;
+  background: var(--desk-deep);
+  box-shadow: inset 0 0 0 1px var(--desk-line);
+  color: var(--ink);
+  font: 0.8125rem/1.6 var(--font-ui);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.af-checks ul {
+  display: grid;
+  gap: 0.9rem;
+  margin: 2rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.af-check {
+  display: grid;
+  grid-template-columns: 5rem 1fr;
+  align-items: start;
+  gap: 0.75rem;
+}
+.af-check .af-status {
+  justify-self: start;
+}
+.af-check-label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--ink);
+}
+.af-check-detail {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--ink-3);
+}
+.af-export-files {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  padding: 1.1rem 1.25rem;
+  border-radius: 6px;
+  background: var(--grain), var(--paper);
+  box-shadow: var(--shadow-paper), 0 0 0 1px var(--paper-edge);
+}
+.af-export-file {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+.af-export-file + .af-export-file {
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--desk-line);
+}
+a.af-btn {
+  text-decoration: none;
+}
+
+/* ---------- G. Prep: copy left, a practice panel right with questions beside the answer ---------- */
+
+.af-prep-copy {
+  grid-column: 1 / span 5;
+}
+.af-prep-demo {
+  grid-column: 6 / -1;
+}
+.af-prep-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+}
+.af-questions {
+  display: grid;
+  align-content: start;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 1.25rem;
+  border: 0;
+  border-right: 1px solid var(--desk-line);
+}
+.af-question {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.7rem 0.8rem;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px var(--desk-line);
+  cursor: pointer;
+  transition: background-color 200ms, box-shadow 200ms;
+}
+.af-question:hover {
+  background: rgb(255 255 255 / 0.03);
+}
+.af-question[data-on] {
+  background: var(--frog-soft);
+  box-shadow: inset 0 0 0 1px rgb(201 174 234 / 0.5);
+}
+.af-question:has(input:focus-visible) {
+  outline: 2px solid var(--frog-text);
+  outline-offset: 2px;
+}
+.af-question-focus {
+  font-size: 0.8125rem;
+  color: var(--ink-3);
+}
+.af-question-text {
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.af-answer {
+  padding: 1.25rem 1.25rem 0;
+}
+.af-answer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+.af-answer-actions .af-fact-source {
+  margin-right: auto;
+  font-variant-numeric: tabular-nums;
+}
+.af-questions legend {
+  float: left;
+  width: 100%;
+  padding: 0;
+}
+.af-star {
+  padding: 1rem 1.25rem 1.25rem;
+  min-height: 9rem;
+  font-size: 0.875rem;
+}
+.af-star ul {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.af-star-part {
+  display: grid;
+  grid-template-columns: 5.5rem auto 1fr;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+.af-star-part .af-status {
+  justify-self: start;
+}
+.af-star-name {
+  font-weight: 600;
+  color: var(--ink);
+}
+.af-star-tip {
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+/* ---------- H. Applications: the tracker left, copy right ---------- */
+
+.af-apps-demo {
+  grid-column: 1 / span 7;
+}
+.af-apps-copy {
+  grid-column: 9 / -1;
+}
+.af-apps-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.af-apps-table th,
+.af-apps-table td {
+  padding: 0.85rem 1.25rem;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--desk-line);
+}
+.af-apps-table thead th {
+  padding-top: 1rem;
+  padding-bottom: 0.6rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+.af-apps-title {
+  display: block;
+  font-weight: 600;
+  color: var(--ink);
+}
+.af-apps-co {
+  display: block;
+  font-weight: 400;
+  font-size: 0.8125rem;
+  color: var(--ink-3);
+}
+.af-apps-table tr[data-closed] .af-apps-title {
+  color: var(--ink-3);
+}
+.af-apps-date {
+  color: var(--ink-3);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.af-select {
+  min-height: 2.25rem;
+  max-width: 100%;
+  padding: 0 2rem 0 0.7rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: var(--desk-deep)
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M1 1l4 4 4-4' fill='none' stroke='%23c6b8a4' stroke-width='1.5'/></svg>")
+    no-repeat right 0.7rem center;
+  color: var(--ink);
+  font: 0.875rem var(--font-ui);
+  appearance: none;
+  cursor: pointer;
+}
+.af-select option,
+.af-select optgroup {
+  background: var(--desk-deep);
+  color: var(--ink);
+}
+.af-select:focus-visible {
+  outline: 2px solid var(--frog-text);
+  outline-offset: 1px;
+}
+.af-followups {
+  padding: 1rem 1.25rem 1.25rem;
+  font-size: 0.875rem;
+  color: var(--ink);
+}
+.af-followups ul {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ---------- I. Sources: copy left, the question card right with the files beneath ---------- */
+
+.af-sources-copy {
+  grid-column: 1 / span 5;
+}
+.af-sources-demo {
+  grid-column: 7 / -1;
+}
+.af-ask {
+  padding: 1.4rem 1.5rem 1.1rem;
+}
+.af-ask-q {
+  display: block;
+  margin: 0.4rem 0 0.35rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.3rem;
+  line-height: 1.3;
+  color: var(--ink);
+}
+.af-ask-why {
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.af-ask .af-fact-actions {
+  margin-top: 0.75rem;
+  justify-content: flex-end;
+}
+.af-ask-answer {
+  margin: 1rem 0 0;
+  padding: 0.85rem 1rem;
+  border-radius: 4px;
+  background: var(--desk-deep);
+}
+.af-ask .af-review-said {
+  margin-top: 0.75rem;
+}
+.af-sources-files {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.af-sources-files li {
+  padding: 0.85rem 1rem;
+  border-radius: 6px;
+  background: var(--desk-deep);
+}
+
+/* ---------- The end of the thread ---------- */
+
+.af-end {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 1.25rem;
+  padding: 2rem var(--gutter) 4rem;
+  text-align: center;
+}
+.af-end-line {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--ink-2);
+}
+
+/* ---------- Narrow screens ---------- */
+
+@media (max-width: 899px) {
+  .af-copy {
+    position: static;
+    order: -1;
+  }
+  .af-tailor-copy,
+  .af-tailor-demo,
+  .af-review-demo,
+  .af-review-copy,
+  .af-letter-copy,
+  .af-letter-demo,
+  .af-export-demo,
+  .af-export-copy,
+  .af-prep-copy,
+  .af-prep-demo,
+  .af-apps-demo,
+  .af-apps-copy,
+  .af-sources-copy,
+  .af-sources-demo {
+    grid-column: 1 / -1;
+  }
+  .af-review-list > li:nth-child(2) {
+    margin-left: 0;
+  }
+  .af-letter-desk[data-why] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .af-letter-desk[data-why] .af-letter-notes {
+    order: -1;
+  }
+}
+@media (max-width: 680px) {
+  .af-tailor-grid,
+  .af-prep-panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .af-questions {
+    border-right: 0;
+    border-bottom: 1px solid var(--desk-line);
+  }
+  .af-star-part {
+    grid-template-columns: 5.5rem 1fr;
+  }
+  .af-star-tip {
+    grid-column: 1 / -1;
+  }
+  .af-apps-table thead {
+    display: none;
+  }
+  .af-apps-table tr {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    border-bottom: 1px solid var(--desk-line);
+  }
+  .af-apps-table th,
+  .af-apps-table td {
+    border: 0;
+    padding: 0.5rem 1rem;
+  }
+  .af-apps-table th[scope="row"] {
+    grid-column: 1 / -1;
+    padding-top: 0.9rem;
+  }
+  .af-apps-table td:not(.af-apps-date) {
+    padding-bottom: 0.9rem;
+  }
+  .af-apps-date {
+    align-self: center;
+  }
+  .af-sources-files {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .af-review-bar,
+  .af-review-body,
+  .af-review-actions,
+  .af-ask {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* ---------- Skip link, touch ---------- */
+
+.af-skip {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 10;
+  padding: 0.6rem 0.9rem;
+  border-radius: 4px;
+  background: var(--frog);
+  color: var(--on-frog);
+  font: 600 0.875rem/1 var(--font-ui);
+  text-decoration: none;
+  transform: translateY(-200%);
+}
+.af-skip:focus-visible {
+  transform: none;
+}
+.af-demo :is(button, a, label, select) {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (pointer: coarse) {
+  .af-toggle-opt,
+  .af-select,
+  .af-progress a {
+    min-height: 2.75rem;
+  }
+}

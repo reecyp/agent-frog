@@ -13,6 +13,8 @@ import {
   approveDocument,
   createApplication,
   generateDocuments,
+  latestDocuments,
+  resolveAllForDemo,
   reviewLine,
   setStatus,
   trackJob,
@@ -85,6 +87,26 @@ export async function reviewLineAction(applicationId: string, documentId: string
 
 export async function approveAction(applicationId: string, documentId: string) {
   return run(async () => approveDocument(await activeStudentId(), documentId), ["/jobs/[id]", "/applications", "/studio"]);
+}
+
+/** Demo shortcut: resolves every open line of both drafts, then approves them (each approval still runs the export checks). */
+export async function resolveAllDemoAction(applicationId: string) {
+  return run(async () => {
+    const studentId = await activeStudentId();
+    const latest = await latestDocuments(applicationId);
+    const notes: string[] = [];
+    for (const doc of [latest.resume, latest.cover_letter]) {
+      if (!doc || doc.status === "approved") continue;
+      await resolveAllForDemo(studentId, doc.id);
+      try {
+        await approveDocument(studentId, doc.id);
+      } catch (e) {
+        notes.push(`${doc.kind === "resume" ? "Resume" : "Cover letter"}: ${(e as Error).message}`);
+      }
+    }
+    // Returned rather than thrown, so the page still refreshes to show what did resolve.
+    return { approved: notes.length === 0, notes };
+  }, ["/jobs/[id]", "/applications", "/studio", "/ai-log"]);
 }
 
 export async function setStatusAction(applicationId: string, status: ApplicationStatus) {

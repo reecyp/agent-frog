@@ -77,7 +77,7 @@ async function Settings() {
           <p className="min-w-0 text-[0.9375rem]">
             Active profile: <span className="font-semibold">{student.fullName}</span>. <span className="text-ink-2">It belongs to this browser only.</span>
           </p>
-          <Link href="/start" className="btn btn-secondary shrink-0 self-start @2xl:self-auto"><FileUp className="size-4" aria-hidden /> Start over with a new resume</Link>
+          <Link href="/start?replace=1" className="btn btn-secondary shrink-0 self-start @2xl:self-auto"><FileUp className="size-4" aria-hidden /> Start over with a new resume</Link>
         </div>
       </Section>
     </div>

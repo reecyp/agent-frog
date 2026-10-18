@@ -5,6 +5,7 @@ import { aiConfigured } from "./ai/claude";
 import { aiParseResume } from "./ai/tasks";
 import { parseResumeText, type ParsedResume } from "@/domain/resumeParse";
 import { normalize } from "@/domain/text";
+import { sameExperience, similarBullets } from "@/domain/experiences";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 
@@ -42,7 +43,17 @@ export interface ImportResult {
  * student must confirm it. AI-parsed bullets that don't appear word-for-word in the file are
  * marked unverified instead of being trusted.
  */
-export async function importDocument(studentId: string, file: File, kind: "resume" | "linkedin", existingOrgs: Set<string>): Promise<ImportResult> {
+/** A role already in the profile, so a LinkedIn import can add to it instead of listing it twice. */
+export interface ExistingExperience {
+  id: string;
+  organization: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  bullets: string[];
+}
+
+export async function importDocument(studentId: string, file: File, kind: "resume" | "linkedin", existing: ExistingExperience[]): Promise<ImportResult> {
   const text = await extractText(file);
   if (text.trim().length < 80) throw new Error(`${file.name} has almost no readable text. If it's a scanned image, export a text-based PDF instead.`);
   const db = await getDb();
@@ -71,16 +82,32 @@ export async function importDocument(studentId: string, file: File, kind: "resum
   let notVerbatim = 0;
   let experiences = 0;
 
-  if (kind === "resume" || existingOrgs.size === 0) {
+  // Rows are collected and written in one insert per table: each query is a network round trip on Neon.
+  const educationRows: (typeof schema.education.$inferInsert)[] = [];
+  const experienceRows: (typeof schema.experiences.$inferInsert)[] = [];
+  const bulletRows: (typeof schema.bullets.$inferInsert)[] = [];
+  if (kind === "resume" || existing.length === 0) {
     for (const [i, e] of parsed.education.entries()) {
-      await db.insert(schema.education).values({ id: newId("edu"), studentId, ...e, status: "extracted", provenance, sortOrder: i });
+      educationRows.push({ id: newId("edu"), studentId, ...e, status: "extracted", provenance, sortOrder: i });
     }
   }
   for (const [i, x] of parsed.experiences.entries()) {
-    // From LinkedIn, only add roles the resume doesn't already have, so the student can compare.
-    if (kind === "linkedin" && existingOrgs.has(normalize(x.organization))) continue;
+    // From LinkedIn, a role the resume already has (often named a little differently) gains only
+    // the bullets it was missing; it is never listed a second time.
+    const match = kind === "linkedin" ? existing.find((e) => sameExperience(e, x)) : undefined;
+    if (match) {
+      const fresh = x.bullets.filter((b) => !match.bullets.some((m) => similarBullets(m, b)));
+      for (const [j, b] of fresh.entries()) {
+        const ok = verbatim(b);
+        if (!ok) notVerbatim++;
+        bullets++;
+        bulletRows.push({ id: newId("b"), studentId, experienceId: match.id, text: b, originalText: b, status: ok ? "extracted" : "unverified", provenance, sortOrder: 100 + j });
+        match.bullets.push(b);
+      }
+      continue;
+    }
     const expId = newId("exp");
-    await db.insert(schema.experiences).values({
+    experienceRows.push({
       id: expId, studentId, section: x.section, organization: x.organization, city: x.city, title: x.title || "(title not found)",
       startDate: x.startDate, endDate: x.endDate, status: "extracted", provenance, sourceDocumentId: docId, sortOrder: 100 + i,
     });
@@ -89,11 +116,17 @@ export async function importDocument(studentId: string, file: File, kind: "resum
       const ok = verbatim(b);
       if (!ok) notVerbatim++;
       bullets++;
-      await db.insert(schema.bullets).values({ id: newId("b"), studentId, experienceId: expId, text: b, originalText: b, status: ok ? "extracted" : "unverified", provenance, sortOrder: j });
+      bulletRows.push({ id: newId("b"), studentId, experienceId: expId, text: b, originalText: b, status: ok ? "extracted" : "unverified", provenance, sortOrder: j });
     }
   }
-  for (const [i, s] of parsed.skills.entries()) {
-    await db.insert(schema.skills).values({ id: newId("sk"), studentId, ...s, status: "extracted", provenance, sortOrder: i });
-  }
+  const skillRows: (typeof schema.skills.$inferInsert)[] = parsed.skills.map((s, i) => ({ id: newId("sk"), studentId, ...s, status: "extracted", provenance, sortOrder: i }));
+
+  // Experiences first: bullets reference them.
+  await Promise.all([
+    educationRows.length ? db.insert(schema.education).values(educationRows) : null,
+    experienceRows.length ? db.insert(schema.experiences).values(experienceRows) : null,
+    skillRows.length ? db.insert(schema.skills).values(skillRows) : null,
+  ]);
+  if (bulletRows.length) await db.insert(schema.bullets).values(bulletRows);
   return { parsedWith, experiences, bullets, notVerbatim, uncertain: parsed.uncertain, contact: parsed.contact, aiError };
 }

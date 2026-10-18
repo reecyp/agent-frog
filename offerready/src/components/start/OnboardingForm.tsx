@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { CheckCircle2, FileText, Info, Loader2, Upload, X } from "lucide-react";
-import { uploadResume, type UploadResult } from "@/app/(start)/start/actions";
+import { FileText, Info, Loader2, Upload, X } from "lucide-react";
+import { uploadResume } from "@/app/(start)/start/actions";
 import type { ActionResult } from "@/app/actions";
 import { fadeRise } from "../motion";
 
@@ -78,7 +77,7 @@ function FileDrop({ name, label, hint, onChange }: { name: string; label: string
   );
 }
 
-/** One question per step, after the materials. The resume-specific follow-up questions come next, on /start/questions. */
+/** One question per step, after the materials. The resume-specific follow-up questions come next, on /start/questions, with a summary of what was read. */
 const QUESTIONS: { id: string; title: string; body: React.ReactNode }[] = [
   { id: "roles", title: "Which roles are you looking for?", body: <input id="q-roles" name="roles" className="input" placeholder="Marketing intern, brand analyst" aria-labelledby="h-roles" /> },
   { id: "loc", title: "Where would you like to work?", body: <input id="q-loc" name="locations" className="input" placeholder="Dallas, TX, Remote" aria-labelledby="h-loc" /> },
@@ -134,7 +133,7 @@ const TOTAL = QUESTIONS.length + 1;
 
 /** The fitting room's first stage: materials, then a few quick questions about what the student wants. */
 export function OnboardingForm({ replacing }: { replacing: boolean }) {
-  const [state, action, pending] = useActionState<ActionResult<UploadResult> | null, FormData>(uploadResume, null);
+  const [state, action, pending] = useActionState<ActionResult | null, FormData>(uploadResume, null);
   const [step, setStep] = useState(0);
   const [files, setFiles] = useState({ resume: false, linkedin: false });
   const headings = useRef<(HTMLHeadingElement | null)[]>([]);
@@ -155,8 +154,6 @@ export function OnboardingForm({ replacing }: { replacing: boolean }) {
     moved.current = true;
     setStep(n);
   };
-
-  if (state?.ok && state.data) return <Result data={state.data} />;
 
   const hasFile = files.resume;
   const last = step === TOTAL - 1;
@@ -259,31 +256,5 @@ function Progress({ step }: { step: number }) {
         ))}
       </div>
     </div>
-  );
-}
-
-function Result({ data: r }: { data: UploadResult }) {
-  const lines = [["Resume", r.resume] as const, r.linkedin && (["LinkedIn", r.linkedin] as const)].filter(Boolean) as (readonly [string, UploadResult["resume"]])[];
-  return (
-    <motion.div {...fadeRise} className="mx-auto grid max-w-xl gap-6">
-      <div>
-        <p className="flex items-center gap-2 text-[0.875rem] font-semibold text-[var(--ok)]"><CheckCircle2 className="size-4" aria-hidden /> Imported.</p>
-        <h1 className="t-title mt-3">Here&apos;s what was read.</h1>
-      </div>
-      <p className="text-sm text-[var(--ink-2)]">Next, a few questions about your own experience. After that you&apos;ll check every item before anything is used.</p>
-      <ul className="paper grid gap-3 p-5 text-sm">
-        {lines.map(([label, x]) => (
-          <li key={label}>
-            <span className="font-semibold">{label}:</span> {x.experiences} {x.experiences === 1 ? "experience" : "experiences"} and {x.bullets} bullets, read {x.parsedWith === "claude" ? "by Claude" : "with rules (no AI key)"}.
-            {x.notVerbatim > 0 && <span className="text-[var(--caution)]"> {x.notVerbatim} {x.notVerbatim === 1 ? "bullet didn't" : "bullets didn't"} match your file word for word, so {x.notVerbatim === 1 ? "it's" : "they're"} marked not used until you check.</span>}
-            {x.aiError && <span className="text-[var(--caution)]"> Claude couldn&apos;t read it ({x.aiError}), so rules were used.</span>}
-            {x.uncertain.length > 0 && <ul className="t-meta mt-1 list-disc pl-5">{x.uncertain.map((u, i) => <li key={i}>{u}</li>)}</ul>}
-          </li>
-        ))}
-      </ul>
-      <div>
-        <Link href="/start/questions" className="btn btn-primary">Continue to your questions</Link>
-      </div>
-    </motion.div>
   );
 }

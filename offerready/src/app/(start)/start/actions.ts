@@ -8,28 +8,22 @@ import { getDb, schema } from "@/server/db";
 import { newId } from "@/server/ids";
 import { STUDENT_COOKIE, currentStudent, loadProfile } from "@/server/profile";
 import { importDocument, type ImportResult } from "@/server/importer";
+import { IMPORT_COOKIE, saveImportSummary } from "@/server/importSummary";
 import { aiConfigured } from "@/server/ai/claude";
 import { aiOnboardingQuestions, aiSampleAnswers } from "@/server/ai/tasks";
 import { ruleOnboardingQuestions } from "@/domain/deepDive";
 import { evidenceFrom } from "@/domain/profile";
-import { normalize } from "@/domain/text";
 import type { Arrangement, JobLevel } from "@/domain/types";
 import type { ActionResult } from "@/app/actions";
-
-export interface UploadResult {
-  resume: ImportResult;
-  linkedin?: ImportResult;
-  replaced: boolean;
-}
 
 const list = (v: FormDataEntryValue | null) => String(v ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 
 /**
  * Creates this browser's profile from an uploaded resume (plus an optional LinkedIn PDF) and the
- * fitting-room answers, then writes the onboarding questions. Returns what was read so the student
- * sees it before answering. Uploading again replaces the previous profile.
+ * fitting-room answers, writes the onboarding questions, then moves on to them. What was read is
+ * shown on the questions page. Uploading again replaces the previous profile.
  */
-export async function uploadResume(_: unknown, form: FormData): Promise<ActionResult<UploadResult>> {
+export async function uploadResume(_: unknown, form: FormData): Promise<ActionResult> {
   const resume = form.get("resume");
   const linkedin = form.get("linkedin");
   if (!(resume instanceof File) || resume.size === 0) return { ok: false, error: "Choose your resume file first." };
@@ -55,10 +49,10 @@ export async function uploadResume(_: unknown, form: FormData): Promise<ActionRe
   let imported: ImportResult;
   let fromLinkedin: ImportResult | undefined;
   try {
-    imported = await importDocument(studentId, resume, "resume", new Set());
+    imported = await importDocument(studentId, resume, "resume", []);
     if (hasLinkedin) {
       const p = await loadProfile(studentId);
-      fromLinkedin = await importDocument(studentId, linkedin as File, "linkedin", new Set(p.experiences.map((x) => normalize(x.organization))));
+      fromLinkedin = await importDocument(studentId, linkedin as File, "linkedin", p.experiences.map((x) => ({ id: x.id, organization: x.organization, title: x.title, startDate: x.startDate, endDate: x.endDate, bullets: x.bullets.map((b) => b.text) })));
     }
   } catch (e) {
     await db.delete(schema.students).where(eq(schema.students.id, studentId));
@@ -93,8 +87,9 @@ export async function uploadResume(_: unknown, form: FormData): Promise<ActionRe
 
   if (previous) await db.delete(schema.students).where(eq(schema.students.id, previous.id));
   (await cookies()).set(STUDENT_COOKIE, studentId, { httpOnly: true, sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 365 });
+  await saveImportSummary(imported, fromLinkedin);
   revalidatePath("/", "layout");
-  return { ok: true, data: { resume: imported, linkedin: fromLinkedin, replaced: Boolean(previous) } };
+  redirect("/start/questions");
 }
 
 async function onboardingStudent() {
@@ -126,10 +121,12 @@ export async function submitAnswers(answers: Record<string, string>): Promise<Ac
     .where(and(eq(schema.profileAnswers.studentId, s.id), eq(schema.profileAnswers.kind, "quiz")));
   const missing = qs.filter((q) => (answers[q.id] ?? "").trim().length < 3).length;
   if (missing) return { ok: false, error: `Answer every question first (${missing} left).` };
-  for (const q of qs) {
-    await db.update(schema.profileAnswers).set({ answer: answers[q.id].trim(), state: "answered", answeredAt: new Date() }).where(eq(schema.profileAnswers.id, q.id));
-  }
+  // In parallel: each update is its own network round trip on Neon.
+  await Promise.all(qs.map((q) =>
+    db.update(schema.profileAnswers).set({ answer: answers[q.id].trim(), state: "answered", answeredAt: new Date() }).where(eq(schema.profileAnswers.id, q.id)),
+  ));
   await db.update(schema.students).set({ onboardingStep: "review" }).where(eq(schema.students.id, s.id));
+  (await cookies()).delete({ name: IMPORT_COOKIE, path: "/start" });
   revalidatePath("/", "layout");
   redirect("/start/confirm");
 }

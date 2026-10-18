@@ -20,6 +20,7 @@ import { Stepper, type StepId } from "@/components/applications/Stepper";
 import { ReviewStep } from "@/components/applications/ReviewStep";
 import { ExportStep } from "@/components/applications/ExportStep";
 import { ApplicationSidebar, ASIDE_BLOCK } from "@/components/applications/ApplicationSidebar";
+import { BackLink } from "@/components/shell/BackLink";
 
 export const metadata: Metadata = { title: "Job" };
 
@@ -81,11 +82,7 @@ async function JobDetail({ params, searchParams }: { params: Promise<{ id: strin
   return (
     <article>
       <header className="mb-8">
-        <nav aria-label="Breadcrumb" className="t-meta mb-3 flex min-w-0 items-center gap-1.5">
-          <Link href={view ? "/applications" : "/discover"} className="shrink-0 text-ink-2 hover:text-ink hover:underline">{view ? "Applications" : "Jobs"}</Link>
-          <span aria-hidden>/</span>
-          <span className="truncate">{job.company}</span>
-        </nav>
+        <BackLink fallbackHref={view ? "/applications" : "/discover"} fallbackLabel={view ? "applications" : "jobs"} />
         <h1 className="t-title measure text-balance break-words">{job.title}</h1>
         <p className="mt-1.5 text-[1.0625rem] font-semibold break-words text-ink">{job.company}</p>
         <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[0.875rem] text-ink-2">

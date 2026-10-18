@@ -16,8 +16,9 @@ import {
   rulePlan,
   type JobContext,
 } from "@/domain/tailor";
-import { allLines, buildValidationContext, mapLines, revalidate, reviewState } from "@/domain/validate";
+import { allLines, buildValidationContext, mapLines, PLACEHOLDER, revalidate, reviewState } from "@/domain/validate";
 import { checkAts } from "@/domain/ats";
+import { mergeDuplicateExperiences } from "@/domain/experiences";
 import type { ApplicationStatus, DocLine, DocumentContent } from "@/domain/types";
 import { APPLICATION_STATUSES } from "@/domain/types";
 
@@ -101,7 +102,8 @@ export interface GenerationResult {
 export async function generateDocuments(studentId: string, applicationId: string): Promise<GenerationResult> {
   const db = await getDb();
   const { app, job } = await ownedApplication(studentId, applicationId);
-  const profile = await loadProfile(studentId);
+  // The same job imported twice (resume + LinkedIn) is drafted as one entry, never two.
+  const profile = mergeDuplicateExperiences(await loadProfile(studentId));
   const evidence = evidenceFrom(profile);
   const ctx = jobContext(job);
   let generator: "claude" | "rules" = "rules";
@@ -230,6 +232,57 @@ export async function approveDocument(studentId: string, documentId: string) {
     await logEvent(app.id, "status", "Both documents approved. Marked Ready to apply.");
   }
   return { ats };
+}
+
+/**
+ * Demo shortcut: settles every open line of one draft the way a careful student would. Lines that
+ * need confirmation are confirmed; unsupported claims are removed (never accepted); name blanks
+ * become "Hiring Manager" and other personalization blanks are dropped from their sentence.
+ * Logged to the AI log as a demo action so it's never mistaken for a real review.
+ */
+export async function resolveAllForDemo(studentId: string, documentId: string) {
+  const db = await getDb();
+  const { doc, app } = await ownedDocument(studentId, documentId);
+  if (doc.status === "approved") return { confirmed: 0, removed: 0, filled: 0 };
+  const evidence = evidenceFrom(await loadProfile(studentId));
+  const [job] = await db.select().from(schema.jobs).where(eq(schema.jobs.id, app.jobId));
+  const ctx = buildValidationContext(evidence, doc.kind, [job.title, job.company]);
+  let confirmed = 0;
+  let removed = 0;
+  let filled = 0;
+  const content = mapLines(doc.content, (l) => {
+    if (l.decision === "removed") return l;
+    PLACEHOLDER.lastIndex = 0;
+    if (PLACEHOLDER.test(l.text)) {
+      PLACEHOLDER.lastIndex = 0;
+      const text = l.text
+        // Only a blank asking who the letter is addressed to becomes "Hiring Manager"; any other blank is dropped.
+        .replace(PLACEHOLDER, (m) => (/hiring manager|recipient|addressee|(manager|person|contact|recruiter)['’]?s? name|name of the (hiring|manager|recruiter|person)/i.test(m) ? "Hiring Manager" : ""))
+        .replace(/\s{2,}/g, " ")
+        .replace(/\s+([,.;:!?])/g, "$1")
+        .trim();
+      const next = text.split(/\s+/).length >= 2 ? revalidate({ ...l, text, decision: "edited" }, ctx) : null;
+      if (next && next.verification !== "unsupported") {
+        filled++;
+        return next;
+      }
+      removed++;
+      return { ...l, decision: "removed" };
+    }
+    if (l.verification === "unsupported") {
+      removed++;
+      return { ...l, decision: "removed" };
+    }
+    if (l.verification === "needs_review" && l.decision === "pending") {
+      confirmed++;
+      // The same path as the student pressing Accept: confirming resolves the warning.
+      return revalidate({ ...l, decision: "accepted" }, ctx);
+    }
+    return l;
+  });
+  await db.update(schema.documents).set({ content }).where(eq(schema.documents.id, documentId));
+  await logAi(studentId, app.id, "demo_resolved", `Demo: resolved every open line of the ${doc.kind === "resume" ? "resume" : "cover letter"} at once (${confirmed} confirmed, ${removed} removed, ${filled} blanks filled).`, { documentId, confirmed, removed, filled });
+  return { confirmed, removed, filled };
 }
 
 /** Clean export, rendered fresh from approved content only. */

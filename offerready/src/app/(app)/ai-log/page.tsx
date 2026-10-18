@@ -15,6 +15,7 @@ const KIND: Record<string, { label: string; cls: string }> = {
   student_edited: { label: "You rewrote it", cls: "badge-accent" },
   student_confirmed: { label: "You confirmed it", cls: "badge-ok" },
   ai_error: { label: "AI unavailable", cls: "badge-neutral" },
+  demo_resolved: { label: "Demo shortcut", cls: "badge-frog" },
 };
 
 export default function AiLogPage() {

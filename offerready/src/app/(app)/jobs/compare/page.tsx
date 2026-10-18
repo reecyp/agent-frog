@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { BackLink } from "@/components/shell/BackLink";
 import { activeStudentId } from "@/server/profile";
 import { jobsByIds } from "@/server/jobs/read";
 import { topKeywords } from "@/domain/requirements";
@@ -12,10 +13,10 @@ export const metadata: Metadata = { title: "Compare jobs" };
 export default function ComparePage({ searchParams }: PageProps<"/jobs/compare">) {
   return (
     <>
+      <BackLink fallbackHref="/discover" fallbackLabel="jobs" />
       <PageHeader
         title="Compare jobs"
         lede="Side by side: what each posting asks for, and where your profile is strongest."
-        actions={<Link href="/discover" className="btn btn-secondary">Back to Discover</Link>}
       />
       <Suspense fallback={<ListSkeleton rows={2} />}>
         <Compare searchParams={searchParams} />

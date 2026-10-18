@@ -1,0 +1,719 @@
+/* =========================================================================
+   The walkthrough: the studio after the cut. Warm walnut, paper panels,
+   Caslon headings, purple only on actions and the current step. Scoped
+   under .af-demo like everything else.
+   ========================================================================= */
+
+.af-demo {
+  --paper-edge: #3d3129;
+  --line-strong: #4a3d34;
+  --instrument: #110d0b;
+  --frog-hi: #5f2492;
+  --frog-soft: rgb(140 90 200 / 0.18);
+  --on-frog: #f6effd;
+  --ok: #a3c99a;
+  --ok-soft: rgb(120 170 110 / 0.16);
+  --caution: #e6bf72;
+  --caution-soft: rgb(214 165 70 / 0.14);
+  --shadow-paper: 0 1px 0 rgb(255 235 210 / 0.04) inset, 0 1px 2px rgb(0 0 0 / 0.35), 0 14px 32px -18px rgb(0 0 0 / 0.7);
+  --shadow-raised: 0 1px 0 rgb(255 255 255 / 0.16) inset, 0 -1px 0 rgb(0 0 0 / 0.3) inset, 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-sheet: 0 0 0 1px rgb(0 0 0 / 0.3), 0 2px 4px rgb(0 0 0 / 0.3), 0 30px 60px -24px rgb(0 0 0 / 0.8);
+  --section-gap: clamp(7rem, 18vh, 13rem);
+}
+
+/* Rises under the cloth: overlaps the last screen of the opening stage */
+.af-walk {
+  position: relative;
+  z-index: 0;
+  margin-top: -100vh;
+  margin-top: -100svh;
+  padding: 26svh 0 16svh;
+  background: radial-gradient(ellipse 55% 30svh at 50% 40svh, rgb(var(--glow) / 0.13), transparent 100%);
+}
+.af-still + .af-walk {
+  margin-top: 0;
+  padding-top: 18svh;
+}
+
+/* ---------- Section grid ---------- */
+
+.af-section {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(1rem, 3vw, 2.75rem);
+  align-items: center;
+  max-width: 92rem;
+  margin: 0 auto var(--section-gap);
+  padding: 0 var(--gutter);
+  scroll-margin-top: 10svh;
+}
+
+.af-h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.3rem, 4.4vw, 4.1rem);
+  line-height: 1.02;
+  letter-spacing: -0.012em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+.af-lede {
+  margin: 1.75rem 0 0;
+  max-width: 32em;
+  font-size: clamp(1.0625rem, 0.95rem + 0.35vw, 1.1875rem);
+  line-height: 1.6;
+  color: var(--ink);
+}
+.af-demo-note {
+  margin: 1rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+
+/* ---------- Buttons and statuses ---------- */
+
+.af-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 4px;
+  background: var(--frog);
+  color: var(--on-frog);
+  font: 600 0.875rem/1 var(--font-ui);
+  box-shadow: var(--shadow-raised);
+  cursor: pointer;
+  transition:
+    background-color 200ms var(--ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    transform 120ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.af-btn:hover {
+  background: var(--frog-hi);
+}
+.af-btn:active {
+  transform: scale(0.97);
+}
+.af-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+.af-btn-quiet {
+  background: transparent;
+  color: var(--ink-2);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+.af-btn-quiet:hover {
+  background: rgb(255 255 255 / 0.05);
+  color: var(--ink);
+}
+.af-btn-sm {
+  min-height: 2.125rem;
+  padding: 0 0.75rem;
+  font-size: 0.8125rem;
+}
+@media (pointer: coarse) {
+  .af-btn,
+  .af-btn-sm {
+    min-height: 2.75rem;
+  }
+}
+
+.af-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.af-status-extracted {
+  color: var(--caution);
+  background: var(--caution-soft);
+}
+.af-status-confirmed {
+  color: var(--ok);
+  background: var(--ok-soft);
+}
+.af-status-edited {
+  color: var(--frog-text);
+  background: var(--frog-soft);
+}
+
+/* ---------- A. Materials: explanation left, the cutting table right ---------- */
+
+.af-materials-copy {
+  grid-column: 1 / span 6;
+}
+.af-facts {
+  margin-top: 2.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.af-facts p {
+  margin: 0;
+  padding: 0.55rem 0 0.55rem 1.4rem;
+  position: relative;
+}
+/* A short chalk stitch marks each fact */
+.af-facts p::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 1.15em;
+  width: 0.85rem;
+  border-top: 2px dashed rgb(var(--chalk) / 0.4);
+}
+
+.af-table {
+  grid-column: 7 / -1;
+  padding: clamp(1.25rem, 2.4vw, 2rem);
+  border-radius: 6px;
+  background: var(--grain), var(--paper);
+  box-shadow: var(--shadow-paper), 0 0 0 1px var(--paper-edge);
+}
+.af-slots {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: clamp(1rem, 2vw, 1.5rem);
+  align-items: end;
+}
+.af-slot-bed {
+  position: relative;
+  container-type: inline-size;
+  aspect-ratio: 8.5 / 11;
+  display: grid;
+  place-items: center;
+  border-radius: 3px;
+  background: var(--desk-deep);
+  /* tailor's chalk outline where the sheet goes */
+  outline: 1.5px dashed rgb(var(--chalk) / 0.22);
+  outline-offset: -10px;
+}
+.af-slot[data-filled] .af-slot-bed {
+  outline-color: transparent;
+}
+.af-slot-empty {
+  max-width: 12ch;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  text-align: center;
+  color: var(--ink-3);
+}
+.af-sheet-wrap {
+  position: absolute;
+  inset: 5%;
+}
+.af-slot-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.af-slot-name {
+  min-width: 0;
+}
+.af-slot-label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--ink);
+}
+.af-slot-hint {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.8125rem;
+  color: var(--ink-3);
+  overflow-wrap: anywhere;
+}
+
+/* Documents keep light paper: exported resumes are never themed */
+.af-paper {
+  height: 100%;
+  overflow: hidden;
+  padding: 7% 8%;
+  background: #fbf9f3;
+  color: #1d1b18;
+  font-family: "Times New Roman", Times, "Liberation Serif", serif;
+  font-size: 3.1cqi;
+  line-height: 1.3;
+  box-shadow: var(--shadow-sheet);
+}
+.af-paper p {
+  margin: 0;
+}
+.af-paper ul {
+  margin: 0.2em 0 0.4em;
+  padding-left: 1.2em;
+}
+.af-paper li {
+  margin: 0.1em 0;
+}
+.af-resume-name {
+  font-size: 2em;
+  font-weight: 700;
+  text-align: center;
+}
+.af-resume-contact {
+  margin-top: 0.2em !important;
+  font-size: 0.9em;
+  text-align: center;
+}
+.af-resume-h {
+  margin: 1em 0 0.35em !important;
+  padding-bottom: 0.1em;
+  border-bottom: 1px solid #1d1b18;
+  font-weight: 700;
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+}
+.af-resume-strong {
+  font-weight: 700;
+}
+.af-resume-em {
+  font-style: italic;
+}
+.af-linkedin {
+  font-size: 3.6cqi;
+}
+
+.af-readlog {
+  margin-top: 1.5rem;
+  min-height: 3.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--ink);
+}
+.af-readlog ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.af-readlog li + li {
+  margin-top: 0.5rem;
+}
+.af-readlog-file {
+  font-weight: 600;
+}
+.af-readlog-empty {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+/* ---------- B. Profile: the panel left, explanation right ---------- */
+
+.af-profile {
+  align-items: start;
+}
+.af-profile-demo {
+  grid-column: 1 / span 7;
+}
+.af-profile-copy {
+  grid-column: 8 / -1;
+  padding-left: clamp(0rem, 2vw, 2rem);
+  padding-top: clamp(2rem, 8vh, 6rem);
+}
+.af-pledge {
+  margin: 2.25rem 0 0;
+  max-width: 24em;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(1.2rem, 1rem + 0.6vw, 1.45rem);
+  line-height: 1.45;
+  color: var(--lamp);
+}
+
+.af-panel {
+  border-radius: 6px;
+  background: var(--grain), var(--paper);
+  box-shadow: var(--shadow-paper), 0 0 0 1px var(--paper-edge);
+  overflow: hidden;
+}
+.af-panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  padding: 1.4rem 1.5rem 1rem;
+}
+.af-panel-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.4rem;
+  line-height: 1.15;
+}
+.af-panel-sub {
+  margin: 0.15rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--ink-3);
+}
+.af-count {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--ink-2);
+}
+.af-count-num {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.6rem;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.af-tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0 1rem;
+  border-bottom: 1px solid var(--desk-line);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.af-tab {
+  position: relative;
+  flex: none;
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  border: 0;
+  background: none;
+  color: var(--ink-3);
+  font: 600 0.875rem/1 var(--font-ui);
+  cursor: pointer;
+  transition: color 200ms;
+}
+.af-tab:hover,
+.af-tab[aria-selected="true"] {
+  color: var(--ink);
+}
+.af-tab-mark {
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: -1px;
+  height: 2px;
+  background: var(--frog-text);
+}
+
+.af-panel-body {
+  min-height: 23rem;
+  padding: 0.5rem 1.5rem 1rem;
+}
+.af-role {
+  margin: 1rem 0 0.25rem;
+}
+.af-role-org {
+  display: block;
+  font-weight: 600;
+  color: var(--ink);
+}
+.af-role-meta {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--ink-3);
+}
+
+.af-facts-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.af-fact {
+  position: relative;
+  padding: 0.95rem 0 0.95rem 0.9rem;
+}
+.af-fact + .af-fact {
+  border-top: 1px solid var(--desk-line);
+}
+/* Unchecked facts carry a mark in the margin (as well as their status words) */
+.af-fact::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 1.1rem;
+  bottom: 1.1rem;
+  width: 2px;
+  background: var(--caution);
+  opacity: 0;
+  transition: opacity 200ms;
+}
+.af-fact[data-status="extracted"]::before {
+  opacity: 0.8;
+}
+.af-fact-text {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.af-fact-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-top: 0.6rem;
+}
+.af-fact-source {
+  font-size: 0.8125rem;
+  color: var(--ink-3);
+}
+.af-fact-actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+.af-fact-edit .af-fact-actions {
+  margin-top: 0.6rem;
+  justify-content: flex-end;
+}
+.af-input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: var(--desk-deep);
+  color: var(--ink);
+  font: 0.9375rem/1.5 var(--font-ui);
+  resize: vertical;
+}
+.af-input:focus-visible {
+  outline: 2px solid var(--frog-text);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.af-wants {
+  margin: 0.75rem 0 0;
+}
+.af-wants div {
+  padding: 0.8rem 0;
+}
+.af-wants div + div {
+  border-top: 1px solid var(--desk-line);
+}
+.af-wants dt {
+  font-size: 0.8125rem;
+  color: var(--ink-3);
+}
+.af-wants dd {
+  margin: 0.15rem 0 0;
+  font-size: 0.9375rem;
+  color: var(--ink);
+}
+
+.af-panel-aside {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+.af-panel-body .af-panel-aside {
+  margin-top: 0.75rem;
+}
+.af-panel-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  padding: 1rem 1.5rem 1.25rem;
+  border-top: 1px solid var(--desk-line);
+  background: rgb(0 0 0 / 0.14);
+}
+.af-panel-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ---------- The thread, the tape, the progress ---------- */
+
+.af-thread {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+.af-thread-stitch {
+  fill: none;
+  stroke: rgb(var(--chalk) / 0.3);
+  stroke-width: 1.5;
+  stroke-dasharray: 7 6;
+  stroke-linecap: round;
+}
+
+/* The needle sits on the stitch at its own tip: the path point is the needle's point (x 40, y 4) */
+.af-needle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: 40px;
+  height: 8px;
+  margin: -4px 0 0 -40px;
+  transform-origin: 40px 4px;
+  pointer-events: none;
+  will-change: transform;
+}
+.af-needle svg {
+  display: block;
+  overflow: visible;
+}
+.af-needle-steel {
+  fill: #cfcac2;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.6));
+}
+.af-needle-eye {
+  fill: var(--desk);
+}
+
+.af-tape {
+  position: absolute;
+  top: 46%;
+  left: -14px;
+  z-index: 0;
+  width: 34px;
+  height: 64rem;
+  opacity: 0.5;
+  pointer-events: none;
+}
+.af-tape svg {
+  width: 100%;
+  height: 100%;
+}
+.af-tape-body {
+  fill: rgb(227 190 132 / 0.12);
+}
+.af-tape-tick {
+  stroke: rgb(227 190 132 / 0.5);
+  stroke-width: 1;
+}
+.af-tape-num {
+  fill: rgb(227 190 132 / 0.6);
+  font: 600 9px var(--font-ui);
+  text-anchor: middle;
+}
+
+.af-progress {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 3;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  background: var(--instrument);
+  box-shadow: 0 0 0 1px #30261f, 0 12px 30px -12px rgb(0 0 0 / 0.7);
+  font-size: 0.8125rem;
+}
+.af-progress {
+  display: flex;
+  flex-direction: column-reverse;
+}
+.af-progress ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.af-progress li:not(:has([aria-current])) {
+  display: none;
+}
+.af-progress:hover li,
+.af-progress:focus-within li {
+  display: block;
+}
+.af-progress a {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 1.9rem;
+  color: var(--ink-3);
+  text-decoration: none;
+  transition: color 200ms;
+}
+.af-progress a::before {
+  content: "";
+  width: 0.9rem;
+  border-top: 2px dashed currentColor;
+  opacity: 0.35;
+}
+.af-progress a:hover {
+  color: var(--ink);
+}
+.af-progress a[aria-current] {
+  color: var(--ink);
+  font-weight: 600;
+}
+.af-progress a[aria-current]::before {
+  border-top-color: var(--frog-text);
+  opacity: 1;
+}
+.af-progress-count {
+  margin: 0 0 0.1rem;
+  font-size: 0.8125rem;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Narrow screens: one column, natural reading order ---------- */
+
+@media (max-width: 899px) {
+  .af-section {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 2.5rem;
+  }
+  .af-materials-copy,
+  .af-table,
+  .af-profile-demo,
+  .af-profile-copy {
+    grid-column: 1 / -1;
+  }
+  .af-profile-copy {
+    order: -1;
+    padding-top: 0;
+  }
+  .af-tape {
+    display: none;
+  }
+  /* Top, not bottom: the bottom of a phone screen is where the demos' buttons are */
+  .af-progress {
+    top: 0.75rem;
+    bottom: auto;
+    left: 0.75rem;
+    right: auto;
+    flex-direction: row-reverse;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.25rem 0.75rem;
+  }
+  .af-progress a {
+    min-height: 1.75rem;
+  }
+
+}
+@media (max-width: 520px) {
+  .af-slots {
+    grid-template-columns: 1fr;
+  }
+  .af-slot-linkedin .af-slot-bed {
+    aspect-ratio: 8.5 / 7;
+  }
+  .af-panel-head,
+  .af-panel-body,
+  .af-panel-foot {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}

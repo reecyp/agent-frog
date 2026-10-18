@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { AlertTriangle, Loader2, Sparkles } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Loader2, Sparkles } from "lucide-react";
 import { sampleAnswers, submitAnswers } from "@/app/(start)/start/actions";
+import type { ImportSummary } from "@/server/importSummary";
 import { fadeRise } from "../motion";
 
 interface Question {
@@ -20,7 +21,7 @@ const MIN = 3;
  * room's style. A demo button fills every answer with Claude-written samples, clearly flagged.
  * Every question must be answered before the profile check opens.
  */
-export function QuestionsForm({ questions }: { questions: Question[] }) {
+export function QuestionsForm({ questions, summary }: { questions: Question[]; summary: ImportSummary | null }) {
   const [answers, setAnswers] = useState<Record<string, string>>(() => Object.fromEntries(questions.map((q) => [q.id, q.answer])));
   const [step, setStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -81,6 +82,8 @@ export function QuestionsForm({ questions }: { questions: Question[] }) {
         }
       }}
     >
+      {summary && step === 0 && <ReadSummary summary={summary} />}
+
       <Progress step={step} total={total} answered={answered} />
 
       <div className="flex flex-col gap-3 rounded-[var(--r-panel)] border border-dashed border-[var(--line-strong)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
@@ -174,5 +177,26 @@ function Progress({ step, total, answered }: { step: number; total: number; answ
         ))}
       </div>
     </div>
+  );
+}
+
+/** What the upload read, shown above the first question. Items it flags are checked later, on /start/confirm. */
+function ReadSummary({ summary: r }: { summary: ImportSummary }) {
+  const lines = [["Resume", r.resume] as const, r.linkedin && (["LinkedIn", r.linkedin] as const)].filter(Boolean) as (readonly [string, ImportSummary["resume"]])[];
+  return (
+    <motion.div {...fadeRise} className="grid gap-3">
+      <p className="flex items-center gap-2 text-[0.875rem] font-semibold text-[var(--ok)]"><CheckCircle2 className="size-4" aria-hidden /> Imported. Here&apos;s what was read.</p>
+      <ul className="paper grid gap-3 p-5 text-sm">
+        {lines.map(([label, x]) => (
+          <li key={label}>
+            <span className="font-semibold">{label}:</span> {x.experiences} {x.experiences === 1 ? "experience" : "experiences"} and {x.bullets} bullets, read {x.parsedWith === "claude" ? "by Claude" : "with rules (no AI key)"}.
+            {x.notVerbatim > 0 && <span className="text-[var(--caution)]"> {x.notVerbatim} {x.notVerbatim === 1 ? "bullet didn't" : "bullets didn't"} match your file word for word, so {x.notVerbatim === 1 ? "it's" : "they're"} marked not used until you check.</span>}
+            {x.aiError && <span className="text-[var(--caution)]"> Claude couldn&apos;t read it ({x.aiError}), so rules were used.</span>}
+            {x.uncertain.length > 0 && <ul className="t-meta mt-1 list-disc pl-5">{x.uncertain.map((u, i) => <li key={i}>{u}</li>)}</ul>}
+          </li>
+        ))}
+      </ul>
+      <p className="text-sm text-[var(--ink-2)]">Next, a few questions about your own experience. After that you&apos;ll check every item before anything is used.</p>
+    </motion.div>
   );
 }

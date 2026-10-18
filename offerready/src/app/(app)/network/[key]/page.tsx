@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { CalendarClock, ChevronLeft } from "lucide-react";
+import { CalendarClock } from "lucide-react";
+import { BackLink } from "@/components/shell/BackLink";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { getDb, schema } from "@/server/db";
 import { activeStudentId } from "@/server/profile";
@@ -43,11 +43,8 @@ async function Contact({ params, searchParams }: { params: Promise<{ key: string
 
   return (
     <article>
-      <nav aria-label="Breadcrumb" className="t-meta mb-4 flex items-center gap-1">
-        <Link href="/network" className="inline-flex items-center gap-1 rounded-control hover:text-accent hover:underline">
-          <ChevronLeft className="size-3.5" aria-hidden /> Network
-        </Link>
-      </nav>
+      {/* Opened from a job page (?job=), the natural way back is that job. */}
+      <BackLink fallbackHref={typeof sp.job === "string" ? `/jobs/${sp.job}` : "/network"} fallbackLabel={typeof sp.job === "string" ? "the job" : "network"} />
       <header className="mb-8 border-b border-line pb-6">
         <h1 className="t-title break-words">{alum.name}</h1>
         {role && <p className="mt-1.5 break-words text-[1rem] text-ink-2">{role}</p>}

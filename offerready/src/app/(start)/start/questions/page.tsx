@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui";
 import { QuestionsForm } from "@/components/start/QuestionsForm";
 import { getDb, schema } from "@/server/db";
 import { currentStudent } from "@/server/profile";
+import { readImportSummary } from "@/server/importSummary";
 
 export const metadata: Metadata = { title: "A few questions" };
 
@@ -31,13 +32,14 @@ async function Questions() {
   if (s.onboardingStep === "done") redirect("/studio");
   if (s.onboardingStep === "review") redirect("/start/confirm");
   const db = await getDb();
-  const [qs, exps] = await Promise.all([
+  const [qs, exps, summary] = await Promise.all([
     db.select().from(schema.profileAnswers).where(and(eq(schema.profileAnswers.studentId, s.id), eq(schema.profileAnswers.kind, "quiz"))).orderBy(asc(schema.profileAnswers.createdAt)),
     db.select({ id: schema.experiences.id, title: schema.experiences.title, organization: schema.experiences.organization }).from(schema.experiences).where(eq(schema.experiences.studentId, s.id)),
+    readImportSummary(),
   ]);
   const context = (id: string | null) => {
     const x = exps.find((e) => e.id === id);
     return x ? `About ${x.title}, ${x.organization}` : null;
   };
-  return <QuestionsForm questions={qs.map((q) => ({ id: q.id, question: q.question, answer: q.answer, context: context(q.experienceId) }))} />;
+  return <QuestionsForm questions={qs.map((q) => ({ id: q.id, question: q.question, answer: q.answer, context: context(q.experienceId) }))} summary={summary} />;
 }

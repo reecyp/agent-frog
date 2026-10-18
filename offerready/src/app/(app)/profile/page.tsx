@@ -15,7 +15,7 @@ export default function ProfilePage() {
         tabs={<SectionTabs group="profile" current="/profile" />}
         title="Career profile"
         lede="Your evidence library. Every tailored line traces back to something here, so only keep what's true. Uploaded items stay marked until you confirm them."
-        actions={<Link href="/start" className="btn btn-secondary"><FileUp className="size-4" aria-hidden /> Upload a new resume</Link>}
+        actions={<Link href="/start?replace=1" className="btn btn-secondary"><FileUp className="size-4" aria-hidden /> Upload a new resume</Link>}
       />
       <Suspense fallback={<ListSkeleton rows={4} />}>
         <Profile />

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { and, desc, eq, gte, inArray, ne } from "drizzle-orm";
@@ -7,7 +6,8 @@ import { getDb, schema } from "@/server/db";
 import { activeStudentId } from "@/server/profile";
 import { aiConfigured } from "@/server/ai/claude";
 import { speechConfigured } from "@/server/speech";
-import { ChevronLeft, Keyboard, Mic, MessagesSquare } from "lucide-react";
+import { Keyboard, Mic, MessagesSquare } from "lucide-react";
+import { BackLink } from "@/components/shell/BackLink";
 import { EmptyState, ListSkeleton, Section } from "@/components/ui";
 import { PracticeRunner, type AnswerView } from "@/components/interview/PracticeRunner";
 import { StartSessionButton } from "@/components/interview/StartSession";
@@ -59,11 +59,7 @@ async function Practice({ params }: { params: Promise<{ appId: string }> }) {
 
   return (
     <article className="max-w-[44rem]">
-      <nav aria-label="Breadcrumb" className="mb-4">
-        <Link href="/interview" className="-ml-1 inline-flex items-center gap-1 rounded-[var(--r-control)] px-1 py-0.5 text-[0.8125rem] font-semibold text-[var(--ink-2)] hover:text-[var(--accent)]">
-          <ChevronLeft className="size-4" aria-hidden /> Interview practice
-        </Link>
-      </nav>
+      <BackLink fallbackHref="/interview" fallbackLabel="interview practice" />
       <header className="mb-6">
         <h1 className="t-title text-balance break-words">{row.job.title}</h1>
         <p className="mt-1.5 text-[0.9375rem] text-[var(--ink-2)]"><span className="font-semibold text-[var(--ink)]">{row.job.company}</span>. Questions come from this posting and your profile.</p>

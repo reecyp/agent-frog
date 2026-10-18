@@ -12,6 +12,7 @@ import type { ProfileSnapshot } from "./profile";
 import { scorePair } from "./matching";
 import { normalize, skillsIn, strengthenOpeningVerb, truncate } from "./text";
 import { buildValidationContext, mapLines, revalidate, PLACEHOLDER } from "./validate";
+import { displayDate, similarBullets } from "./experiences";
 
 export interface BulletPlan {
   text: string;
@@ -76,6 +77,22 @@ export function rulePlan(profile: ProfileSnapshot, job: JobContext): TailorPlan 
   return { entries };
 }
 
+/** Character edits between two strings (Levenshtein), for spotting a "rewrite" that changed almost nothing. */
+function editDistance(a: string, b: string): number {
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const cur = [i];
+    for (let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    prev = cur;
+  }
+  return prev[b.length];
+}
+
+/** A rewrite within a few characters of the original (an apostrophe, a dash, one word) isn't worth a change. */
+function nearlySame(original: string, rewrite: string): boolean {
+  return editDistance(original.toLowerCase(), rewrite.toLowerCase()) <= Math.max(3, Math.round(original.length * 0.03));
+}
+
 function makeLine(plan: BulletPlan, original: string): DocLine {
   return {
     id: lineId("ln"),
@@ -101,16 +118,47 @@ export function assembleResume(profile: ProfileSnapshot, job: JobContext, plan: 
   const reqById = new Map(job.requirements.map((r) => [r.id, r]));
   const summary: ChangeSummaryItem[] = [];
   const quoteOf = (rid: string | null) => (rid ? reqById.get(rid)?.quote ?? null : null);
+  // Every fact appears once on the page: what's already been used, across all entries.
+  const usedSources = new Set<string>();
+  const usedTexts: string[] = [];
+  const repeats = (p: BulletPlan) =>
+    (p.sourceEvidenceIds.length > 0 && p.sourceEvidenceIds.every((id) => usedSources.has(id))) || usedTexts.some((t) => similarBullets(t, p.text));
+  const thin: ProfileSnapshot["experiences"] = [];
 
-  const buildEntry = (x: ProfileSnapshot["experiences"][number]): ResumeEntry | null => {
-    const planned = plan.entries[x.id];
-    if (!planned || planned.length === 0) return null;
+  const buildEntry = (x: ProfileSnapshot["experiences"][number], allowSingle = false): ResumeEntry | null => {
+    const proposed = plan.entries[x.id] ?? [];
+    if (proposed.length === 0) return null;
+    // Drop bullets that repeat a fact already on the page (or earlier in this entry).
+    const planned: BulletPlan[] = [];
+    const take = (p: BulletPlan) => {
+      planned.push(p);
+      p.sourceEvidenceIds.forEach((id) => usedSources.add(id));
+      usedTexts.push(p.text);
+    };
+    for (const p of proposed) if (!repeats(p)) take(p);
+    // At least two bullets: top up from this role's other real bullets, word for word.
+    for (const b of x.bullets.filter((b) => b.status !== "unverified").sort((a, b) => a.sortOrder - b.sortOrder)) {
+      if (planned.length >= 2) break;
+      const extra: BulletPlan = { text: b.text, sourceEvidenceIds: [b.id], requirementId: bestRequirement(b.text, job.requirements)?.req.id ?? null, transformation: "unchanged" };
+      if (!repeats(extra)) take(extra);
+    }
+    // A role with only one thing to say reads thin; leave it off unless its section would be empty.
+    if (planned.length < 2 && !allowSingle) {
+      planned.forEach((p) => {
+        p.sourceEvidenceIds.forEach((id) => usedSources.delete(id));
+        usedTexts.splice(usedTexts.indexOf(p.text), 1);
+      });
+      thin.push(x);
+      return null;
+    }
     const baseOrder = x.bullets.filter((b) => b.status !== "unverified").sort((a, b) => a.sortOrder - b.sortOrder).map((b) => b.id);
     const bullets = planned.map((p, idx) => {
       const src = p.sourceEvidenceIds.map((id) => byId.get(id)).filter(Boolean) as EvidenceItem[];
       const original = src.map((s) => s.text).join(" / ");
       let transformation = p.transformation;
       const firstSrc = p.sourceEvidenceIds[0];
+      // A near-identical "rewrite" keeps the student's own words exactly, so it isn't highlighted as a change.
+      if (src.length === 1 && nearlySame(src[0].text, p.text)) p = { ...p, text: src[0].text };
       const sameText = src.length === 1 && normalize(src[0].text) === normalize(p.text);
       if (sameText && transformation === "reworded") transformation = "unchanged";
       if (sameText && baseOrder.indexOf(firstSrc) !== idx && baseOrder.includes(firstSrc)) transformation = "reordered";
@@ -132,13 +180,23 @@ export function assembleResume(profile: ProfileSnapshot, job: JobContext, plan: 
         summary.push({ lineId: null, kind: "omitted", description: `Left out "${truncate(b.text, 70)}" (${x.organization}) to keep the page focused on this role.`, postingQuote: null, postingSource: null });
       }
     }
-    return { experienceId: x.id, organization: x.organization, city: x.city, title: x.title, startDate: x.startDate, endDate: x.endDate, moved: false, bullets };
+    return { experienceId: x.id, organization: x.organization, city: x.city, title: x.title, startDate: displayDate(x.startDate), endDate: displayDate(x.endDate), moved: false, bullets };
   };
 
   // Entries stay in reverse-chronological profile order (a Neeley non-negotiable).
   const ordered = [...profile.experiences].sort((a, b) => a.sortOrder - b.sortOrder);
-  const experience = ordered.filter((x) => x.section === "experience").map(buildEntry).filter((e): e is ResumeEntry => !!e);
-  const leadership = ordered.filter((x) => x.section !== "experience").map(buildEntry).filter((e): e is ResumeEntry => !!e);
+  const section = (xs: ProfileSnapshot["experiences"]) => {
+    thin.length = 0;
+    const built = xs.map((x) => buildEntry(x)).filter((e): e is ResumeEntry => !!e);
+    // Never leave a whole section empty just because its roles are thin.
+    if (built.length === 0) return thin.splice(0).map((x) => buildEntry(x, true)).filter((e): e is ResumeEntry => !!e);
+    for (const x of thin) {
+      summary.push({ lineId: null, kind: "omitted", description: `Left out ${x.organization}: your profile has only one bullet for it, and a single bullet reads thin. Add another in your profile to include it.`, postingQuote: null, postingSource: null });
+    }
+    return built;
+  };
+  const experience = section(ordered.filter((x) => x.section === "experience"));
+  const leadership = section(ordered.filter((x) => x.section !== "experience"));
 
   // Skills: relevant technical skills first, with proficiency, exactly as confirmed.
   const relevant = new Set(job.keywords.concat(job.requirements.flatMap((r) => r.keywords)));
